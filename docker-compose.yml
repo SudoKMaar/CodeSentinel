@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # Main API service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: code-review-agent-api
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      # AWS Bedrock Configuration
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - BEDROCK_MODEL_ID=${BEDROCK_MODEL_ID:-amazon.nova-pro-v1:0}
+      
+      # Alternative LLM Providers
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      
+      # Application Configuration
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - MAX_PARALLEL_FILES=${MAX_PARALLEL_FILES:-4}
+      - DATABASE_URL=sqlite:////app/data/memory_bank.db
+      
+      # API Configuration
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - API_KEY=${API_KEY}
+      
+      # Analysis Configuration
+      - DEFAULT_ANALYSIS_DEPTH=${DEFAULT_ANALYSIS_DEPTH:-standard}
+      - COMPLEXITY_THRESHOLD=${COMPLEXITY_THRESHOLD:-10}
+    volumes:
+      # Mount codebase directory (adjust path as needed)
+      - ${CODEBASE_PATH:-./}:/workspace:ro
+      
+      # Persistent data volumes
+      - memory-bank-data:/app/data
+      - session-data:/app/sessions
+      - analysis-output:/app/output
+      - logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health', timeout=5.0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - code-review-network
+
+  # Optional: PostgreSQL for production Memory Bank
+  # Uncomment to use PostgreSQL instead of SQLite
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: code-review-agent-db
+  #   environment:
+  #     - POSTGRES_DB=code_review_agent
+  #     - POSTGRES_USER=${POSTGRES_USER:-codereviewer}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-codereviewer}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - code-review-network
+
+  # Optional: Nginx reverse proxy for production
+  # Uncomment for production deployment with SSL
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: code-review-agent-nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./ssl:/etc/nginx/ssl:ro
+  #   depends_on:
+  #     - api
+  #   restart: unless-stopped
+  #   networks:
+  #     - code-review-network
+
+volumes:
+  memory-bank-data:
+    driver: local
+  session-data:
+    driver: local
+  analysis-output:
+    driver: local
+  logs:
+    driver: local
+  # postgres-data:
+  #   driver: local
+
+networks:
+  code-review-network:
+    driver: bridge

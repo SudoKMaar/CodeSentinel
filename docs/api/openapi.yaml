@@ -1,0 +1,582 @@
+openapi: 3.0.3
+info:
+  title: Code Review & Documentation Agent API
+  description: |
+    Multi-agent system for automated code quality analysis, documentation generation, and code review.
+    
+    ## Features
+    - Automated code analysis with quality metrics
+    - Documentation generation
+    - Intelligent improvement suggestions
+    - Session management with pause/resume
+    - Webhook notifications
+    - CI/CD integration support
+    
+    ## Authentication
+    Optional API key authentication via X-API-Key header.
+    
+  version: 0.1.0
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Analysis
+    description: Code analysis operations
+  - name: Session
+    description: Session management operations
+  - name: History
+    description: Analysis history operations
+
+paths:
+  /:
+    get:
+      summary: Root endpoint
+      description: Returns basic service information
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "Code Review & Documentation Agent"
+                  version:
+                    type: string
+                    example: "0.1.0"
+                  status:
+                    type: string
+                    example: "running"
+
+  /health:
+    get:
+      summary: Health check
+      description: Returns health status of the service
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+
+  /analyze:
+    post:
+      summary: Trigger code analysis
+      description: |
+        Starts an asynchronous analysis of the specified codebase.
+        Returns a session ID that can be used to check status and retrieve results.
+      tags:
+        - Analysis
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalysisRequest'
+            examples:
+              basic:
+                summary: Basic analysis
+                value:
+                  codebase_path: "./src"
+                  analysis_depth: "standard"
+              advanced:
+                summary: Advanced configuration
+                value:
+                  codebase_path: "./src"
+                  file_patterns: ["*.py", "*.js"]
+                  exclude_patterns: ["tests/**", "node_modules/**"]
+                  coding_standards:
+                    max_complexity: 10
+                    max_line_length: 100
+                  analysis_depth: "deep"
+                  project_id: "my-project"
+              pr_mode:
+                summary: PR mode analysis
+                value:
+                  codebase_path: "."
+                  pr_mode: true
+                  base_ref: "origin/main"
+                  head_ref: "HEAD"
+                  fail_on_critical: true
+      responses:
+        '200':
+          description: Analysis started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /status/{session_id}:
+    get:
+      summary: Get analysis status
+      description: Returns the current status and progress of an analysis session
+      tags:
+        - Session
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /pause/{session_id}:
+    post:
+      summary: Pause analysis
+      description: Pauses a running analysis session, saving current state
+      tags:
+        - Session
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          description: Analysis paused successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    example: "paused"
+                  message:
+                    type: string
+                    example: "Analysis paused successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /resume/{session_id}:
+    post:
+      summary: Resume analysis
+      description: Resumes a paused analysis session
+      tags:
+        - Session
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+        - name: webhook_url
+          in: query
+          description: Optional webhook URL for completion notification
+          required: false
+          schema:
+            type: string
+            format: uri
+      responses:
+        '200':
+          description: Analysis resumed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    example: "running"
+                  message:
+                    type: string
+                    example: "Analysis resumed successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /results/{session_id}:
+    get:
+      summary: Get analysis results
+      description: Returns the complete analysis results for a completed session
+      tags:
+        - Analysis
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+        - name: format
+          in: query
+          description: Output format
+          required: false
+          schema:
+            type: string
+            enum: [json, sarif]
+            default: json
+      responses:
+        '200':
+          description: Results retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResults'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /history:
+    get:
+      summary: Get analysis history
+      description: Returns a list of previous analysis sessions
+      tags:
+        - History
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: status_filter
+          in: query
+          description: Filter by status
+          required: false
+          schema:
+            type: string
+            enum: [running, paused, completed, failed]
+        - name: limit
+          in: query
+          description: Maximum number of results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: History retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Optional API key for authentication
+
+  parameters:
+    SessionId:
+      name: session_id
+      in: path
+      description: Session identifier
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    AnalysisRequest:
+      type: object
+      required:
+        - codebase_path
+      properties:
+        codebase_path:
+          type: string
+          description: Path to the codebase to analyze
+          example: "./src"
+        file_patterns:
+          type: array
+          items:
+            type: string
+          description: File patterns to include
+          example: ["*.py", "*.js", "*.ts"]
+        exclude_patterns:
+          type: array
+          items:
+            type: string
+          description: Patterns to exclude
+          example: ["node_modules/**", "venv/**", ".git/**"]
+        coding_standards:
+          type: object
+          description: Project-specific coding standards
+          additionalProperties: true
+          example:
+            max_complexity: 10
+            max_line_length: 100
+        analysis_depth:
+          type: string
+          enum: [quick, standard, deep]
+          default: standard
+          description: Analysis depth level
+        enable_parallel:
+          type: boolean
+          default: true
+          description: Enable parallel file processing
+        webhook_url:
+          type: string
+          format: uri
+          description: Webhook URL for completion notifications
+        project_id:
+          type: string
+          description: Project identifier for Memory Bank patterns
+        pr_mode:
+          type: boolean
+          default: false
+          description: Enable PR mode to analyze only changed files
+        base_ref:
+          type: string
+          default: "origin/main"
+          description: Base Git reference for PR mode
+        head_ref:
+          type: string
+          default: "HEAD"
+          description: Head Git reference for PR mode
+        output_format:
+          type: string
+          enum: [json, sarif]
+          default: json
+          description: Output format
+        fail_on_critical:
+          type: boolean
+          default: false
+          description: Return error status if critical issues are found
+        fail_on_high:
+          type: boolean
+          default: false
+          description: Return error status if high severity issues are found
+
+    AnalysisResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+          description: Unique session identifier
+        status:
+          type: string
+          enum: [running, paused, completed, failed]
+          description: Current analysis status
+        message:
+          type: string
+          description: Status message
+
+    StatusResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [running, paused, completed, failed]
+        progress:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Progress as a decimal (0.0 to 1.0)
+        processed_count:
+          type: integer
+          description: Number of files processed
+        pending_count:
+          type: integer
+          description: Number of files pending
+        message:
+          type: string
+          description: Optional status message
+
+    AnalysisResults:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [completed]
+        timestamp:
+          type: string
+          format: date-time
+        codebase_path:
+          type: string
+        files_analyzed:
+          type: integer
+        results:
+          type: object
+          properties:
+            file_analyses:
+              type: array
+              items:
+                $ref: '#/components/schemas/FileAnalysis'
+            quality_score:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 100
+            total_issues:
+              type: integer
+            issues_by_severity:
+              type: object
+              additionalProperties:
+                type: integer
+
+    FileAnalysis:
+      type: object
+      properties:
+        file_path:
+          type: string
+        language:
+          type: string
+        metrics:
+          $ref: '#/components/schemas/CodeMetrics'
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeIssue'
+
+    CodeMetrics:
+      type: object
+      properties:
+        cyclomatic_complexity:
+          type: integer
+        maintainability_index:
+          type: number
+          format: float
+        lines_of_code:
+          type: integer
+        comment_ratio:
+          type: number
+          format: float
+
+    CodeIssue:
+      type: object
+      properties:
+        severity:
+          type: string
+          enum: [critical, high, medium, low]
+        category:
+          type: string
+          enum: [complexity, security, style, duplication, naming]
+        file_path:
+          type: string
+        line_number:
+          type: integer
+        description:
+          type: string
+        code_snippet:
+          type: string
+        suggestion:
+          type: string
+
+    HistoryResponse:
+      type: object
+      properties:
+        analyses:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryItem'
+        total:
+          type: integer
+
+    HistoryItem:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        codebase_path:
+          type: string
+        status:
+          type: string
+          enum: [running, paused, completed, failed]
+        files_analyzed:
+          type: integer
+          nullable: true
+        quality_score:
+          type: number
+          format: float
+          nullable: true
+
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Error message
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Codebase path does not exist: /invalid/path"
+
+    Unauthorized:
+      description: Unauthorized - missing API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "API key required"
+
+    Forbidden:
+      description: Forbidden - invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Invalid API key"
+
+    NotFound:
+      description: Not found - resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Session not found: invalid-session-id"

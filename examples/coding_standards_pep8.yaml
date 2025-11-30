@@ -1,0 +1,57 @@
+# PEP 8 Python Coding Standards
+
+name: "PEP 8 - Python Style Guide"
+description: "Official Python style guide"
+reference: "https://peps.python.org/pep-0008/"
+
+rules:
+  # Indentation
+  - id: "indent-4-spaces"
+    description: "Use 4 spaces per indentation level"
+    severity: "high"
+    
+  # Line length
+  - id: "max-line-length-79"
+    description: "Limit all lines to a maximum of 79 characters"
+    severity: "medium"
+    
+  # Imports
+  - id: "imports-on-separate-lines"
+    description: "Imports should usually be on separate lines"
+    severity: "medium"
+    
+  - id: "imports-order"
+    description: "Imports should be grouped: standard library, third party, local"
+    severity: "low"
+    
+  # Naming conventions
+  - id: "function-names-lowercase"
+    description: "Function names should be lowercase with words separated by underscores"
+    severity: "high"
+    
+  - id: "class-names-capwords"
+    description: "Class names should use CapWords convention"
+    severity: "high"
+    
+  - id: "constants-uppercase"
+    description: "Constants should be written in all capital letters with underscores"
+    severity: "medium"
+    
+  # Whitespace
+  - id: "no-trailing-whitespace"
+    description: "Avoid trailing whitespace"
+    severity: "low"
+    
+  - id: "blank-lines"
+    description: "Use blank lines to separate functions and classes"
+    severity: "low"
+    
+  # Comments
+  - id: "block-comments"
+    description: "Block comments should be complete sentences"
+    severity: "low"
+    
+  # Documentation
+  - id: "docstrings"
+    description: "Write docstrings for all public modules, functions, classes, and methods"
+    severity: "high"

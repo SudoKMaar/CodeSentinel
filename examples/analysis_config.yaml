@@ -1,0 +1,53 @@
+# Example analysis configuration
+
+# Target path to analyze
+target_path: ./src
+
+# File patterns to include
+file_patterns:
+  - "**/*.py"
+  - "**/*.js"
+  - "**/*.ts"
+  - "**/*.jsx"
+  - "**/*.tsx"
+
+# Patterns to exclude
+exclude_patterns:
+  - "**/node_modules/**"
+  - "**/venv/**"
+  - "**/.venv/**"
+  - "**/env/**"
+  - "**/__pycache__/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/.git/**"
+
+# Analysis depth: quick, standard, or deep
+analysis_depth: standard
+
+# Enable parallel processing
+enable_parallel: true
+
+# Coding standards
+coding_standards:
+  # Complexity thresholds
+  max_cyclomatic_complexity: 10
+  max_cognitive_complexity: 15
+  
+  # Code style
+  max_line_length: 100
+  max_function_length: 50
+  max_file_length: 500
+  
+  # Naming conventions
+  enforce_snake_case: true
+  enforce_camel_case_classes: true
+  
+  # Documentation requirements
+  require_docstrings: true
+  require_type_hints: true
+  
+  # Security checks
+  check_sql_injection: true
+  check_hardcoded_secrets: true
+  check_unsafe_deserialization: true

@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+.kiro/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.hypothesis/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Session state and runtime data
+.sessions/
+sessions/
+.quality_metrics/
+memory_bank.db
+
+# Temporary analysis reports (can be regenerated)
+demo-reports/
+vulnerability-reports/
+agent-review.json/
+demo_docs/
+temp_test_docs/
+.demo_sessions/
+
+# Documentation output
+docs_output/
+
+# OS
+.DS_Store
+Thumbs.db

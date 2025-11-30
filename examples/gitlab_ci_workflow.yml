@@ -1,0 +1,254 @@
+# Example GitLab CI/CD configuration for Code Review Agent
+
+# Define stages
+stages:
+  - test
+  - code-review
+  - report
+
+# Variables
+variables:
+  PYTHON_VERSION: "3.11"
+  CODE_REVIEW_CONFIG: ".code-review-config.yaml"
+  REPORT_DIR: "code-review-reports"
+
+# Cache pip packages
+cache:
+  paths:
+    - .cache/pip
+
+# Code review job
+code-review:
+  stage: code-review
+  image: python:${PYTHON_VERSION}
+  
+  before_script:
+    - pip install --cache-dir .cache/pip code-review-documentation-agent
+    
+  script:
+    # Run code analysis
+    - |
+      code-review analyze \
+        --path ./src \
+        --config ${CODE_REVIEW_CONFIG} \
+        --output ${REPORT_DIR} \
+        --depth standard
+    
+    # Display summary
+    - echo "Code review completed. Check artifacts for detailed report."
+    
+  artifacts:
+    name: "code-review-report-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - ${REPORT_DIR}/
+    reports:
+      # GitLab Code Quality report (SARIF format)
+      codequality: ${REPORT_DIR}/report.sarif.json
+    expire_in: 30 days
+    when: always
+  
+  # Run on merge requests and main branch
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+# PR-specific analysis (only changed files)
+code-review-pr:
+  stage: code-review
+  image: python:${PYTHON_VERSION}
+  
+  before_script:
+    - pip install --cache-dir .cache/pip code-review-documentation-agent
+    - apt-get update && apt-get install -y git
+    
+  script:
+    # Run PR mode analysis (only changed files)
+    - |
+      code-review analyze \
+        --path . \
+        --config ${CODE_REVIEW_CONFIG} \
+        --output ${REPORT_DIR} \
+        --pr-mode \
+        --base-ref origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} \
+        --head-ref HEAD \
+        --fail-on-critical
+    
+  artifacts:
+    name: "code-review-pr-${CI_MERGE_REQUEST_IID}"
+    paths:
+      - ${REPORT_DIR}/
+    reports:
+      codequality: ${REPORT_DIR}/report.sarif.json
+    expire_in: 7 days
+    when: always
+  
+  # Only run on merge requests
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  
+  # Allow failure if only low/medium issues
+  allow_failure: false
+
+# Generate quality trend report
+quality-trends:
+  stage: report
+  image: python:${PYTHON_VERSION}
+  
+  before_script:
+    - pip install --cache-dir .cache/pip code-review-documentation-agent
+    
+  script:
+    # Get historical analysis data
+    - code-review history --status-filter completed --limit 10 > history.txt
+    
+    # Display trends
+    - cat history.txt
+    
+  artifacts:
+    paths:
+      - history.txt
+    expire_in: 90 days
+  
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  
+  # Run after code review
+  needs:
+    - code-review
+
+# Scheduled deep analysis (weekly)
+deep-analysis:
+  stage: code-review
+  image: python:${PYTHON_VERSION}
+  
+  before_script:
+    - pip install --cache-dir .cache/pip code-review-documentation-agent
+    
+  script:
+    # Run deep analysis
+    - |
+      code-review analyze \
+        --path . \
+        --config ${CODE_REVIEW_CONFIG} \
+        --output ${REPORT_DIR} \
+        --depth deep \
+        --project-id ${CI_PROJECT_NAME}
+    
+  artifacts:
+    name: "deep-analysis-${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - ${REPORT_DIR}/
+    expire_in: 90 days
+  
+  # Run on schedule only
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+
+# Example with custom configuration
+code-review-custom:
+  stage: code-review
+  image: python:${PYTHON_VERSION}
+  
+  before_script:
+    - pip install --cache-dir .cache/pip code-review-documentation-agent
+    
+  script:
+    # Run with custom settings
+    - |
+      code-review analyze \
+        --path ./src \
+        --output ${REPORT_DIR} \
+        --depth standard \
+        --file-patterns "*.py" \
+        --file-patterns "*.js" \
+        --exclude-patterns "tests/**" \
+        --exclude-patterns "node_modules/**" \
+        --parallel
+    
+  artifacts:
+    paths:
+      - ${REPORT_DIR}/
+    expire_in: 7 days
+  
+  # Manual trigger only
+  rules:
+    - when: manual
+  
+  allow_failure: true
+
+# Example with webhook notification
+code-review-with-webhook:
+  stage: code-review
+  image: python:${PYTHON_VERSION}
+  
+  before_script:
+    - pip install --cache-dir .cache/pip code-review-documentation-agent
+    
+  script:
+    # Start API server in background
+    - uvicorn api.main:app --host 0.0.0.0 --port 8000 &
+    - sleep 5
+    
+    # Trigger analysis via API with webhook
+    - |
+      curl -X POST http://localhost:8000/analyze \
+        -H "Content-Type: application/json" \
+        -d '{
+          "codebase_path": "./src",
+          "analysis_depth": "standard",
+          "webhook_url": "'"${WEBHOOK_URL}"'"
+        }'
+    
+  rules:
+    - if: '$WEBHOOK_URL != null'
+  
+  allow_failure: true
+
+# Example with AWS Bedrock (for Amazon employees)
+code-review-bedrock:
+  stage: code-review
+  image: python:${PYTHON_VERSION}
+  
+  before_script:
+    - pip install --cache-dir .cache/pip code-review-documentation-agent
+    
+  script:
+    # Run with Amazon Bedrock Nova models
+    - |
+      code-review analyze \
+        --path ./src \
+        --config ${CODE_REVIEW_CONFIG} \
+        --output ${REPORT_DIR}
+    
+  variables:
+    AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    AWS_REGION: "us-east-1"
+    BEDROCK_MODEL_ID: "amazon.nova-pro-v1:0"
+  
+  artifacts:
+    paths:
+      - ${REPORT_DIR}/
+    expire_in: 30 days
+  
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# Cleanup old sessions
+cleanup-sessions:
+  stage: report
+  image: python:${PYTHON_VERSION}
+  
+  before_script:
+    - pip install --cache-dir .cache/pip code-review-documentation-agent
+    
+  script:
+    # List and clean up old sessions
+    - code-review history --status-filter completed --limit 100
+    - echo "Session cleanup completed"
+    
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  
+  allow_failure: true

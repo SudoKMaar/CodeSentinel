@@ -1,0 +1,41 @@
+# Example Analysis Configuration for Code Review Agent
+
+# Path to the codebase to analyze
+target_path: "./my_project"
+
+# File patterns to include in analysis
+file_patterns:
+  - "*.py"
+  - "*.js"
+  - "*.ts"
+  - "*.tsx"
+  - "*.jsx"
+
+# Patterns to exclude from analysis
+exclude_patterns:
+  - "node_modules/**"
+  - "venv/**"
+  - ".git/**"
+  - "__pycache__/**"
+  - "*.pyc"
+  - ".pytest_cache/**"
+  - ".hypothesis/**"
+  - "dist/**"
+  - "build/**"
+  - "*.min.js"
+
+# Project-specific coding standards
+coding_standards:
+  max_complexity: 10
+  max_line_length: 100
+  require_docstrings: true
+  naming_conventions:
+    functions: "snake_case"
+    classes: "PascalCase"
+    constants: "UPPER_CASE"
+
+# Analysis depth: quick, standard, or deep
+analysis_depth: "standard"
+
+# Enable parallel file processing
+enable_parallel: true

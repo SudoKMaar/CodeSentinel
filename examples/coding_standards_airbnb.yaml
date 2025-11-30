@@ -1,0 +1,212 @@
+# Airbnb JavaScript Style Guide
+
+name: "Airbnb JavaScript Style Guide"
+description: "Industry-standard JavaScript style guide by Airbnb"
+reference: "https://github.com/airbnb/javascript"
+
+rules:
+  # Variables
+  - id: "use-const-let"
+    description: "Use const for all references; avoid using var"
+    severity: "high"
+    
+  - id: "one-const-per-declaration"
+    description: "Use one const or let declaration per variable"
+    severity: "medium"
+    
+  # Objects
+  - id: "object-shorthand"
+    description: "Use object method and property shorthand"
+    severity: "low"
+    
+  - id: "quote-object-keys"
+    description: "Only quote object keys that are invalid identifiers"
+    severity: "low"
+    
+  # Arrays
+  - id: "array-spread"
+    description: "Use array spreads ... to copy arrays"
+    severity: "medium"
+    
+  - id: "array-callback-return"
+    description: "Use return statements in array method callbacks"
+    severity: "high"
+    
+  # Destructuring
+  - id: "prefer-destructuring"
+    description: "Use object destructuring for multiple properties"
+    severity: "medium"
+    
+  # Strings
+  - id: "prefer-template-strings"
+    description: "Use template strings instead of concatenation"
+    severity: "medium"
+    
+  - id: "no-eval"
+    description: "Never use eval() on a string"
+    severity: "critical"
+    
+  # Functions
+  - id: "function-style"
+    description: "Use named function expressions instead of function declarations"
+    severity: "medium"
+    
+  - id: "arrow-functions"
+    description: "Use arrow functions for anonymous functions"
+    severity: "medium"
+    
+  - id: "arrow-parens"
+    description: "Always include parentheses around arrow function arguments"
+    severity: "low"
+    
+  - id: "no-param-reassign"
+    description: "Never reassign function parameters"
+    severity: "high"
+    
+  # Arrow Functions
+  - id: "arrow-body-style"
+    description: "Use implicit return with arrow functions when possible"
+    severity: "low"
+    
+  # Classes & Constructors
+  - id: "use-class"
+    description: "Use class syntax, avoid manipulating prototype directly"
+    severity: "high"
+    
+  - id: "no-useless-constructor"
+    description: "Avoid empty constructors or ones that just delegate to parent"
+    severity: "medium"
+    
+  - id: "no-duplicate-class-members"
+    description: "Avoid duplicate class members"
+    severity: "high"
+    
+  # Modules
+  - id: "prefer-es6-modules"
+    description: "Use ES6 import/export over other module systems"
+    severity: "high"
+    
+  - id: "no-duplicate-imports"
+    description: "Only import from a path in one place"
+    severity: "medium"
+    
+  - id: "import-extensions"
+    description: "Do not include JavaScript filename extensions in imports"
+    severity: "low"
+    
+  # Iterators and Generators
+  - id: "no-iterators"
+    description: "Don't use iterators, prefer higher-order functions"
+    severity: "medium"
+    
+  - id: "generator-star-spacing"
+    description: "Use consistent spacing around generator functions"
+    severity: "low"
+    
+  # Properties
+  - id: "dot-notation"
+    description: "Use dot notation when accessing properties"
+    severity: "medium"
+    
+  # Comparison Operators
+  - id: "eqeqeq"
+    description: "Use === and !== over == and !="
+    severity: "high"
+    
+  - id: "no-nested-ternary"
+    description: "Avoid nested ternary expressions"
+    severity: "medium"
+    
+  - id: "no-unneeded-ternary"
+    description: "Avoid unneeded ternary statements"
+    severity: "low"
+    
+  # Blocks
+  - id: "brace-style"
+    description: "Use consistent brace style (one true brace style)"
+    severity: "medium"
+    
+  - id: "no-else-return"
+    description: "Avoid else blocks after return statements"
+    severity: "low"
+    
+  # Control Statements
+  - id: "curly"
+    description: "Always use braces with multi-line blocks"
+    severity: "high"
+    
+  # Comments
+  - id: "spaced-comment"
+    description: "Use spaces after comment markers"
+    severity: "low"
+    
+  - id: "multiline-comment-style"
+    description: "Use /** ... */ for multi-line comments"
+    severity: "low"
+    
+  # Whitespace
+  - id: "indent"
+    description: "Use 2 spaces for indentation"
+    severity: "high"
+    
+  - id: "space-before-blocks"
+    description: "Use space before blocks"
+    severity: "medium"
+    
+  - id: "keyword-spacing"
+    description: "Use space before and after keywords"
+    severity: "medium"
+    
+  - id: "space-infix-ops"
+    description: "Use spaces around infix operators"
+    severity: "medium"
+    
+  - id: "no-trailing-spaces"
+    description: "Avoid trailing whitespace"
+    severity: "low"
+    
+  - id: "max-len"
+    description: "Limit line length to 100 characters"
+    severity: "medium"
+    
+  # Commas
+  - id: "comma-style"
+    description: "Use leading commas: Nope"
+    severity: "medium"
+    
+  - id: "comma-dangle"
+    description: "Use trailing commas for multi-line"
+    severity: "medium"
+    
+  # Semicolons
+  - id: "semi"
+    description: "Always use semicolons"
+    severity: "high"
+    
+  # Naming Conventions
+  - id: "camelcase"
+    description: "Use camelCase for variables and functions"
+    severity: "high"
+    
+  - id: "pascal-case-constructors"
+    description: "Use PascalCase for constructors and classes"
+    severity: "high"
+    
+  - id: "no-underscore-dangle"
+    description: "Avoid leading or trailing underscores (except for private)"
+    severity: "medium"
+    
+  # Accessors
+  - id: "accessor-pairs"
+    description: "If defining accessors, define both get and set"
+    severity: "medium"
+    
+  # Events
+  - id: "event-naming"
+    description: "Name event handlers with 'handle' prefix"
+    severity: "low"
+    
+  # Type Casting
+  - id: "no-implicit-coercion"
+    description: "Use explicit type coercion"
+    severity: "medium"

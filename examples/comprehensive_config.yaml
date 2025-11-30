@@ -1,0 +1,312 @@
+# Comprehensive Configuration Example for Code Review Agent
+# This file demonstrates all available configuration options
+
+# Target path to analyze
+target_path: "./src"
+
+# File patterns to include in analysis
+# Supports glob patterns
+file_patterns:
+  # Python files
+  - "*.py"
+  - "**/*.py"
+  
+  # JavaScript/TypeScript files
+  - "*.js"
+  - "*.jsx"
+  - "*.ts"
+  - "*.tsx"
+  
+  # Other languages (if supported)
+  - "*.java"
+  - "*.go"
+  - "*.rs"
+
+# Patterns to exclude from analysis
+# Supports glob patterns
+exclude_patterns:
+  # Dependencies
+  - "node_modules/**"
+  - "venv/**"
+  - ".venv/**"
+  - "env/**"
+  - "vendor/**"
+  
+  # Build artifacts
+  - "build/**"
+  - "dist/**"
+  - "target/**"
+  - "out/**"
+  - "*.egg-info/**"
+  
+  # Cache and temporary files
+  - "__pycache__/**"
+  - "*.pyc"
+  - ".pytest_cache/**"
+  - ".hypothesis/**"
+  - ".mypy_cache/**"
+  - ".ruff_cache/**"
+  - "coverage/**"
+  - ".coverage"
+  - "htmlcov/**"
+  
+  # Version control
+  - ".git/**"
+  - ".svn/**"
+  
+  # IDE files
+  - ".vscode/**"
+  - ".idea/**"
+  - "*.swp"
+  - "*.swo"
+  - "*~"
+  
+  # Documentation build
+  - "docs/_build/**"
+  - "site/**"
+  
+  # Minified files
+  - "*.min.js"
+  - "*.min.css"
+
+# Analysis depth: 'quick', 'standard', or 'deep'
+# - quick: Fast analysis with basic checks (good for development)
+# - standard: Balanced analysis with comprehensive checks (recommended)
+# - deep: Thorough analysis with all checks (good for releases)
+analysis_depth: "standard"
+
+# Enable parallel file processing for faster analysis
+# Set to false if experiencing memory issues
+enable_parallel: true
+
+# Coding standards and quality thresholds
+coding_standards:
+  # Complexity thresholds
+  max_complexity: 10              # Maximum cyclomatic complexity per function
+  max_function_length: 50         # Maximum lines per function
+  max_class_length: 300           # Maximum lines per class
+  max_file_length: 500            # Maximum lines per file
+  
+  # Code style
+  max_line_length: 100            # Maximum characters per line
+  min_maintainability: 65         # Minimum maintainability index (0-100)
+  max_nesting_depth: 4            # Maximum nesting depth
+  
+  # Documentation requirements
+  require_docstrings: true        # Require docstrings for public functions/classes
+  require_type_hints: true        # Require type hints for function signatures
+  require_module_docstring: true  # Require module-level docstrings
+  
+  # Naming conventions
+  naming:
+    functions: "snake_case"       # Function naming style
+    classes: "PascalCase"         # Class naming style
+    constants: "UPPER_CASE"       # Constant naming style
+    variables: "snake_case"       # Variable naming style
+    private: "_leading_underscore" # Private member naming
+  
+  # Security checks
+  security:
+    check_sql_injection: true           # Check for SQL injection vulnerabilities
+    check_hardcoded_secrets: true       # Check for hardcoded credentials/API keys
+    check_unsafe_deserialization: true  # Check for unsafe pickle/eval usage
+    check_path_traversal: true          # Check for path traversal vulnerabilities
+    check_command_injection: true       # Check for command injection risks
+    check_xss: true                     # Check for XSS vulnerabilities
+  
+  # Code quality checks
+  quality:
+    check_code_duplication: true        # Detect duplicated code blocks
+    check_dead_code: true               # Identify unused functions/variables
+    check_error_handling: true          # Verify proper error handling
+    check_test_coverage: true           # Check for test coverage
+    min_test_coverage: 80               # Minimum test coverage percentage
+  
+  # Import and dependency checks
+  imports:
+    no_wildcard_imports: true           # Disallow wildcard imports (from x import *)
+    check_unused_imports: true          # Identify unused imports
+    check_circular_dependencies: true   # Detect circular import dependencies
+    organize_imports: true              # Check import organization
+  
+  # Best practices
+  best_practices:
+    no_mutable_defaults: true           # Disallow mutable default arguments
+    use_context_managers: true          # Encourage 'with' statements for resources
+    prefer_comprehensions: true         # Prefer list/dict comprehensions
+    avoid_global_variables: true        # Discourage global variable usage
+    check_exception_handling: true      # Verify specific exception catching
+  
+  # Performance considerations
+  performance:
+    check_inefficient_loops: true       # Identify inefficient loop patterns
+    check_string_concatenation: true    # Flag inefficient string operations
+    check_unnecessary_copies: true      # Identify unnecessary data copies
+  
+  # Language-specific rules
+  python:
+    pep8_compliance: true               # Check PEP 8 compliance
+    use_f_strings: true                 # Prefer f-strings over format()
+    type_checking: "strict"             # Type checking level: none, basic, strict
+  
+  javascript:
+    use_strict: true                    # Require 'use strict'
+    prefer_const: true                  # Prefer const over let/var
+    no_var: true                        # Disallow var declarations
+    arrow_functions: true               # Prefer arrow functions
+  
+  typescript:
+    strict_mode: true                   # Enable TypeScript strict mode
+    no_any: true                        # Disallow 'any' type
+    explicit_return_types: true         # Require explicit return types
+
+# Project-specific patterns and conventions
+# These will be learned and stored in the Memory Bank
+project_conventions:
+  # Custom patterns to recognize
+  patterns:
+    - name: "API endpoint naming"
+      description: "API endpoints should follow REST conventions"
+      example: "/api/v1/resources/{id}"
+    
+    - name: "Error response format"
+      description: "Errors should return consistent JSON structure"
+      example: '{"error": {"code": "...", "message": "..."}}'
+  
+  # Exceptions to standard rules
+  exceptions:
+    - rule: "max_line_length"
+      files: ["tests/**"]
+      reason: "Test files can have longer lines for readability"
+    
+    - rule: "require_docstrings"
+      files: ["scripts/**"]
+      reason: "Utility scripts don't need extensive documentation"
+
+# Output configuration
+output:
+  # Output directory for reports
+  directory: "./code-review-reports"
+  
+  # Output formats
+  formats:
+    - "json"      # Structured JSON report
+    - "markdown"  # Human-readable markdown report
+    - "sarif"     # SARIF format for CI/CD integration
+    - "html"      # HTML report with visualizations
+  
+  # Report sections to include
+  include:
+    - "summary"           # Executive summary
+    - "metrics"           # Quality metrics
+    - "issues"            # Detailed issue list
+    - "suggestions"       # Improvement suggestions
+    - "documentation"     # Generated documentation
+    - "trends"            # Quality trends (if available)
+  
+  # Verbosity level
+  verbosity: "detailed"   # minimal, standard, detailed
+
+# Notification settings
+notifications:
+  # Webhook URL for completion notifications
+  webhook_url: null  # Set to your webhook URL if needed
+  
+  # Email notifications (if configured)
+  email:
+    enabled: false
+    recipients: []
+    on_completion: true
+    on_failure: true
+    on_critical_issues: true
+
+# CI/CD integration settings
+cicd:
+  # Enable PR mode (analyze only changed files)
+  pr_mode: false
+  
+  # Git references for PR mode
+  base_ref: "origin/main"
+  head_ref: "HEAD"
+  
+  # Exit code behavior
+  fail_on_critical: false   # Exit with error if critical issues found
+  fail_on_high: false        # Exit with error if high severity issues found
+  fail_on_quality_drop: false # Exit with error if quality score decreases
+  
+  # Quality gate thresholds
+  quality_gate:
+    min_quality_score: 70     # Minimum acceptable quality score
+    max_critical_issues: 0    # Maximum allowed critical issues
+    max_high_issues: 5        # Maximum allowed high severity issues
+    max_complexity: 15        # Maximum allowed complexity
+
+# Memory Bank settings
+memory_bank:
+  # Enable Memory Bank for learning project patterns
+  enabled: true
+  
+  # Project identifier for pattern storage
+  project_id: "my-project"
+  
+  # Pattern confidence threshold (0.0 to 1.0)
+  confidence_threshold: 0.7
+  
+  # Update patterns based on feedback
+  learn_from_feedback: true
+
+# Performance tuning
+performance:
+  # Maximum number of files to process in parallel
+  max_parallel_files: 4
+  
+  # Timeout for individual file analysis (seconds)
+  file_timeout: 300
+  
+  # Maximum memory usage (MB)
+  max_memory: 2048
+  
+  # Cache analysis results
+  enable_cache: true
+  cache_ttl: 3600  # Cache time-to-live in seconds
+
+# Logging and observability
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: "INFO"
+  
+  # Log format: json, text
+  format: "json"
+  
+  # Log file path (null for stdout only)
+  file: null
+  
+  # Enable distributed tracing
+  tracing:
+    enabled: true
+    service_name: "code-review-agent"
+    
+  # Metrics collection
+  metrics:
+    enabled: true
+    export_interval: 60  # seconds
+
+# Advanced options
+advanced:
+  # Custom LLM configuration
+  llm:
+    provider: "bedrock"  # bedrock, openai, anthropic, ollama
+    model: "amazon.nova-pro-v1:0"
+    temperature: 0.1
+    max_tokens: 4096
+  
+  # AST parser configuration
+  parser:
+    timeout: 30  # seconds
+    max_file_size: 10485760  # 10 MB
+  
+  # Retry configuration
+  retry:
+    max_attempts: 3
+    backoff_factor: 2
+    max_delay: 60  # seconds

@@ -1,0 +1,67 @@
+# Example configuration file for Code Review & Documentation Agent CLI
+# Usage: code-review analyze --path ./src --config cli_config_example.yaml
+
+# Target path to analyze (can be overridden by --path option)
+target_path: ./src
+
+# File patterns to include in analysis
+file_patterns:
+  - "*.py"      # Python files
+  - "*.js"      # JavaScript files
+  - "*.ts"      # TypeScript files
+  - "*.tsx"     # TypeScript React files
+  - "*.jsx"     # JavaScript React files
+
+# Patterns to exclude from analysis
+exclude_patterns:
+  - "node_modules/**"
+  - "venv/**"
+  - ".venv/**"
+  - "env/**"
+  - ".git/**"
+  - "__pycache__/**"
+  - "*.pyc"
+  - "build/**"
+  - "dist/**"
+  - "*.egg-info/**"
+  - ".pytest_cache/**"
+  - ".hypothesis/**"
+  - "coverage/**"
+  - ".coverage"
+
+# Coding standards and quality thresholds
+coding_standards:
+  # Maximum cyclomatic complexity for functions
+  max_complexity: 10
+  
+  # Maximum line length
+  max_line_length: 100
+  
+  # Minimum maintainability index (0-100)
+  min_maintainability: 65
+  
+  # Naming conventions
+  naming:
+    functions: "snake_case"
+    classes: "PascalCase"
+    constants: "UPPER_CASE"
+  
+  # Security checks
+  security:
+    check_sql_injection: true
+    check_hardcoded_secrets: true
+    check_unsafe_deserialization: true
+  
+  # Documentation requirements
+  documentation:
+    require_docstrings: true
+    require_type_hints: true
+
+# Analysis depth: 'quick', 'standard', or 'deep'
+# - quick: Fast analysis with basic checks
+# - standard: Balanced analysis (recommended)
+# - deep: Comprehensive analysis with all checks
+analysis_depth: standard
+
+# Enable parallel file processing for faster analysis
+enable_parallel: true

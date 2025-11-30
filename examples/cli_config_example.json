@@ -1,0 +1,47 @@
+{
+  "target_path": "./src",
+  "file_patterns": [
+    "*.py",
+    "*.js",
+    "*.ts",
+    "*.tsx",
+    "*.jsx"
+  ],
+  "exclude_patterns": [
+    "node_modules/**",
+    "venv/**",
+    ".venv/**",
+    "env/**",
+    ".git/**",
+    "__pycache__/**",
+    "*.pyc",
+    "build/**",
+    "dist/**",
+    "*.egg-info/**",
+    ".pytest_cache/**",
+    ".hypothesis/**",
+    "coverage/**",
+    ".coverage"
+  ],
+  "coding_standards": {
+    "max_complexity": 10,
+    "max_line_length": 100,
+    "min_maintainability": 65,
+    "naming": {
+      "functions": "snake_case",
+      "classes": "PascalCase",
+      "constants": "UPPER_CASE"
+    },
+    "security": {
+      "check_sql_injection": true,
+      "check_hardcoded_secrets": true,
+      "check_unsafe_deserialization": true
+    },
+    "documentation": {
+      "require_docstrings": true,
+      "require_type_hints": true
+    }
+  },
+  "analysis_depth": "standard",
+  "enable_parallel": true
+}

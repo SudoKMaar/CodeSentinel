@@ -1,0 +1,354 @@
+# Kubernetes deployment configuration for Code Review Agent
+# This file contains all necessary Kubernetes resources
+
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: code-review-agent
+  labels:
+    name: code-review-agent
+
+---
+# ConfigMap for application configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: code-review-agent-config
+  namespace: code-review-agent
+data:
+  LOG_LEVEL: "INFO"
+  MAX_PARALLEL_FILES: "4"
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  AWS_REGION: "us-east-1"
+  BEDROCK_MODEL_ID: "amazon.nova-pro-v1:0"
+  DEFAULT_ANALYSIS_DEPTH: "standard"
+  COMPLEXITY_THRESHOLD: "10"
+  DATABASE_URL: "sqlite:////app/data/memory_bank.db"
+
+---
+# PersistentVolumeClaim for data storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: code-review-agent-pvc
+  namespace: code-review-agent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard  # Adjust based on your cluster
+
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: code-review-agent
+  namespace: code-review-agent
+  labels:
+    app: code-review-agent
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: code-review-agent
+  template:
+    metadata:
+      labels:
+        app: code-review-agent
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      containers:
+      - name: code-review-agent
+        image: your-registry/code-review-agent:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+
+        # Environment variables from ConfigMap
+        envFrom:
+        - configMapRef:
+            name: code-review-agent-config
+
+        # Secrets
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: code-review-agent-secrets
+              key: aws-access-key-id
+              optional: true
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: code-review-agent-secrets
+              key: aws-secret-access-key
+              optional: true
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: code-review-agent-secrets
+              key: api-key
+              optional: true
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: code-review-agent-secrets
+              key: openai-api-key
+              optional: true
+
+        # Resource limits
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+
+        # Liveness probe
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+
+        # Readiness probe
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+
+        # Startup probe (for slow-starting containers)
+        startupProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 30
+
+        # Volume mounts
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+        - name: sessions
+          mountPath: /app/sessions
+        - name: logs
+          mountPath: /app/logs
+        - name: output
+          mountPath: /app/output
+
+      # Volumes
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: code-review-agent-pvc
+      - name: sessions
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      - name: output
+        emptyDir: {}
+
+      # Node affinity (optional - for specific node selection)
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: workload-type
+      #           operator: In
+      #           values:
+      #           - compute-intensive
+
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: code-review-agent
+  namespace: code-review-agent
+  labels:
+    app: code-review-agent
+spec:
+  type: LoadBalancer  # Change to ClusterIP if using Ingress
+  selector:
+    app: code-review-agent
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: http
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800  # 3 hours for long-running analyses
+
+---
+# HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: code-review-agent-hpa
+  namespace: code-review-agent
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: code-review-agent
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 2
+        periodSeconds: 30
+      selectPolicy: Max
+
+---
+# Ingress (optional - for external access with custom domain)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: code-review-agent-ingress
+  namespace: code-review-agent
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/rate-limit: "10"
+spec:
+  tls:
+  - hosts:
+    - code-review.example.com
+    secretName: code-review-agent-tls
+  rules:
+  - host: code-review.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: code-review-agent
+            port:
+              number: 80
+
+---
+# NetworkPolicy (optional - for network security)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: code-review-agent-netpol
+  namespace: code-review-agent
+spec:
+  podSelector:
+    matchLabels:
+      app: code-review-agent
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8000
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow external HTTPS (for LLM APIs)
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+  # Allow AWS Bedrock endpoints
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+
+---
+# PodDisruptionBudget (for high availability)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: code-review-agent-pdb
+  namespace: code-review-agent
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: code-review-agent

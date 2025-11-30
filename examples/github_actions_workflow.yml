@@ -1,0 +1,59 @@
+# Example GitHub Actions workflow for code review agent
+
+name: Code Review
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+
+jobs:
+  code-review:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install code review agent
+      run: |
+        pip install code-review-documentation-agent
+        
+    - name: Run code analysis
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: us-east-1
+        BEDROCK_MODEL_ID: amazon.nova-pro-v1:0
+      run: |
+        code-review-agent analyze \
+          --path ./src \
+          --config .code-review-config.yaml \
+          --output ./reports
+          
+    - name: Upload analysis report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: code-review-report
+        path: ./reports
+        
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('./reports/summary.md', 'utf8');
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: report
+          });

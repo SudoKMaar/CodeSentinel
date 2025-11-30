@@ -1,0 +1,243 @@
+# Google Style Guide (Python)
+
+name: "Google Python Style Guide"
+description: "Google's Python coding standards"
+reference: "https://google.github.io/styleguide/pyguide.html"
+
+rules:
+  # Imports
+  - id: "import-order"
+    description: "Imports should be on separate lines, grouped by type"
+    severity: "medium"
+    
+  - id: "no-wildcard-imports"
+    description: "Do not use wildcard imports (from module import *)"
+    severity: "high"
+    
+  - id: "import-absolute"
+    description: "Use absolute imports for packages"
+    severity: "medium"
+    
+  # Packages
+  - id: "package-structure"
+    description: "Use proper package structure with __init__.py files"
+    severity: "medium"
+    
+  # Exceptions
+  - id: "specific-exceptions"
+    description: "Catch specific exceptions, not bare except"
+    severity: "high"
+    
+  - id: "raise-from"
+    description: "Use 'raise from' to preserve exception chain"
+    severity: "medium"
+    
+  - id: "exception-naming"
+    description: "Exception names should end with 'Error'"
+    severity: "low"
+    
+  # Global Variables
+  - id: "avoid-global-vars"
+    description: "Avoid global variables; use module-level constants instead"
+    severity: "medium"
+    
+  - id: "constant-naming"
+    description: "Module-level constants should be UPPER_CASE"
+    severity: "high"
+    
+  # List Comprehensions
+  - id: "simple-comprehensions"
+    description: "Use list comprehensions for simple cases only"
+    severity: "medium"
+    
+  - id: "no-nested-comprehensions"
+    description: "Avoid nested list comprehensions"
+    severity: "medium"
+    
+  # Default Iterators
+  - id: "use-default-iterators"
+    description: "Use default iterators and operators for types that support them"
+    severity: "low"
+    
+  # Generators
+  - id: "prefer-generators"
+    description: "Use generators for large data sets"
+    severity: "medium"
+    
+  # Lambda Functions
+  - id: "lambda-simple"
+    description: "Use lambdas for one-liners only"
+    severity: "medium"
+    
+  - id: "prefer-def"
+    description: "Prefer def over lambda for complex functions"
+    severity: "medium"
+    
+  # Conditional Expressions
+  - id: "simple-conditionals"
+    description: "Use conditional expressions for simple cases only"
+    severity: "low"
+    
+  # Default Argument Values
+  - id: "no-mutable-defaults"
+    description: "Never use mutable objects as default values"
+    severity: "critical"
+    
+  # Properties
+  - id: "use-properties"
+    description: "Use properties for accessing or setting data"
+    severity: "medium"
+    
+  # True/False Evaluations
+  - id: "implicit-false"
+    description: "Use implicit false for empty sequences"
+    severity: "low"
+    
+  - id: "is-not-comparison"
+    description: "Use 'is not' instead of 'not ... is'"
+    severity: "medium"
+    
+  # Lexical Scoping
+  - id: "avoid-nested-functions"
+    description: "Avoid nested functions when not necessary"
+    severity: "low"
+    
+  # Function and Method Decorators
+  - id: "decorator-usage"
+    description: "Use decorators judiciously"
+    severity: "low"
+    
+  # Threading
+  - id: "thread-safety"
+    description: "Use threading module's locking primitives"
+    severity: "high"
+    
+  # Power Features
+  - id: "avoid-metaclasses"
+    description: "Avoid metaclasses unless absolutely necessary"
+    severity: "medium"
+    
+  # Type Annotations
+  - id: "use-type-hints"
+    description: "Use type hints for function signatures"
+    severity: "high"
+    
+  - id: "typing-imports"
+    description: "Import typing module for complex types"
+    severity: "medium"
+    
+  # Strings
+  - id: "string-formatting"
+    description: "Use f-strings for formatting (Python 3.6+)"
+    severity: "medium"
+    
+  - id: "string-quotes"
+    description: "Be consistent with string quotes (prefer single or double)"
+    severity: "low"
+    
+  - id: "multiline-strings"
+    description: "Use triple quotes for multi-line strings"
+    severity: "medium"
+    
+  # Files and Sockets
+  - id: "use-context-managers"
+    description: "Use 'with' statement for files and sockets"
+    severity: "high"
+    
+  # TODO Comments
+  - id: "todo-format"
+    description: "Format TODO comments as 'TODO(username): description'"
+    severity: "low"
+    
+  # Naming
+  - id: "module-names"
+    description: "Module names should be lowercase with underscores"
+    severity: "high"
+    
+  - id: "package-names"
+    description: "Package names should be lowercase without underscores"
+    severity: "medium"
+    
+  - id: "class-names"
+    description: "Class names should use CapWords convention"
+    severity: "high"
+    
+  - id: "function-names"
+    description: "Function names should be lowercase with underscores"
+    severity: "high"
+    
+  - id: "method-names"
+    description: "Instance method names should be lowercase with underscores"
+    severity: "high"
+    
+  - id: "constant-names"
+    description: "Constants should be UPPER_CASE with underscores"
+    severity: "high"
+    
+  - id: "private-naming"
+    description: "Use single leading underscore for internal use"
+    severity: "medium"
+    
+  - id: "protected-naming"
+    description: "Use double leading underscore for name mangling"
+    severity: "low"
+    
+  # Main
+  - id: "main-guard"
+    description: "Use if __name__ == '__main__': guard for executable scripts"
+    severity: "high"
+    
+  # Function Length
+  - id: "function-length"
+    description: "Keep functions focused and reasonably sized (< 40 lines)"
+    severity: "medium"
+    
+  # Documentation
+  - id: "module-docstring"
+    description: "Every file should contain a module docstring"
+    severity: "high"
+    
+  - id: "function-docstring"
+    description: "Public functions and methods should have docstrings"
+    severity: "high"
+    
+  - id: "class-docstring"
+    description: "Classes should have docstrings"
+    severity: "high"
+    
+  - id: "docstring-format"
+    description: "Use Google-style docstring format"
+    severity: "medium"
+    
+  # Line Length
+  - id: "max-line-length"
+    description: "Limit lines to 80 characters (100 for comments/docstrings)"
+    severity: "medium"
+    
+  # Indentation
+  - id: "indent-4-spaces"
+    description: "Use 4 spaces per indentation level"
+    severity: "high"
+    
+  # Blank Lines
+  - id: "blank-lines-functions"
+    description: "Use 2 blank lines between top-level definitions"
+    severity: "low"
+    
+  - id: "blank-lines-methods"
+    description: "Use 1 blank line between method definitions"
+    severity: "low"
+    
+  # Whitespace
+  - id: "no-trailing-whitespace"
+    description: "Remove trailing whitespace"
+    severity: "low"
+    
+  - id: "operator-spacing"
+    description: "Use spaces around operators"
+    severity: "medium"
+    
+  # Shebang Line
+  - id: "shebang"
+    description: "Use #!/usr/bin/env python3 for executable scripts"
+    severity: "medium"
